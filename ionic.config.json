@@ -1,0 +1,7 @@
+{
+  "name": "CASHFLW",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "react-vite"
+}
