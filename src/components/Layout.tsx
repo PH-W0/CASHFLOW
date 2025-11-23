@@ -7,9 +7,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const navItems = [
     { path: "/dashboard", icon: Home, label: "Dashboard" },
     { path: "/add-transaction", icon: Plus, label: "Add" },
-    { path: "/analytics", icon: BarChart3, label: "Analytics" },
-    { path: "/profile", icon: User, label: "Profile" },
-    { path: "/settings", icon: Settings, label: "Settings" },
+    // { path: "/analytics", icon: BarChart3, label: "Analytics" },
+    // { path: "/profile", icon: User, label: "Profile" },
+    // { path: "/settings", icon: Settings, label: "Settings" },
   ];
 
   const isNavVisible =

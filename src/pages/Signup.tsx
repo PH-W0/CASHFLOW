@@ -1,4 +1,12 @@
-
+import {
+  IonPage,
+  IonContent,
+  IonInput,
+  IonItem,
+  IonLabel,
+  IonButton,
+  IonText,
+} from "@ionic/react";
 import { useState } from "react";
 import { useHistory, Link } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
@@ -6,8 +14,7 @@ import { Eye, EyeOff } from "lucide-react";
 export function Signup() {
   const history = useHistory();
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [name, setName] = useState("");
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -15,129 +22,113 @@ export function Signup() {
   const handleSignup = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!name || !email || !password || !confirmPassword) {
-      alert("Please fill in all fields");
-      return;
-    }
-
     if (password !== confirmPassword) {
       alert("Passwords do not match");
       return;
     }
 
-    history.push("/dashboard");
+    // Here you would normally call an API or Firebase to register
+    alert(`Account created for ${email}`);
+    history.push("/login");
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6 py-8">
-      <div className="w-full max-w-sm">
-        {/* Header */}
-        <div className="mb-8 text-center">
-          <div className="flex items-center justify-center mb-4">
-            <div className="text-primary font-bold text-2xl">CASHFLW</div>
-          </div>
-          <h1 className="text-2xl font-bold text-foreground mb-2">
-            Get Started
-          </h1>
-          <p className="text-muted-foreground text-sm">
-            Create your account to start tracking finances
-          </p>
-        </div>
+    <IonPage>
+      <IonContent className="bg-background">
+        {/* Full-height flex container */}
+        <div className="h-full flex items-center justify-center">
+          <div className="w-full max-w-sm">
 
-        {/* Form */}
-        <form onSubmit={handleSignup} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-2">
-              Full Name
-            </label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Enter your full name"
-              className="w-full px-4 py-3 rounded-lg border border-input bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-          </div>
+            {/* Header */}
+            <div className="text-center mb-8">
+              <div className="text-primary font-bold text-2xl mb-4">CASHFLW</div>
 
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-2">
-              Email Address
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
-              className="w-full px-4 py-3 rounded-lg border border-input bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-          </div>
+              <h1 className="text-2xl font-bold text-foreground mb-1">
+                Create Account
+              </h1>
 
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-2">
-              Password
-            </label>
-            <div className="relative">
-              <input
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Create a password"
-                className="w-full px-4 py-3 rounded-lg border border-input bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
-              >
-                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-              </button>
+              <IonText color="medium">
+                <p className="text-sm">Sign up to get started</p>
+              </IonText>
             </div>
-          </div>
 
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-2">
-              Confirm Password
-            </label>
-            <div className="relative">
-              <input
-                type={showConfirm ? "text" : "password"}
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Confirm your password"
-                className="w-full px-4 py-3 rounded-lg border border-input bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-              <button
-                type="button"
-                onClick={() => setShowConfirm(!showConfirm)}
-                className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
+            {/* Form */}
+            <form onSubmit={handleSignup} className="space-y-4">
+
+              {/* Email */}
+              <IonItem className="rounded-lg border border-input mb-2">
+                <IonLabel position="stacked">Email Address</IonLabel>
+                <IonInput
+                  type="email"
+                  value={email}
+                  onIonChange={(e) => setEmail(e.detail.value!)}
+                  placeholder="Enter your email"
+                />
+              </IonItem>
+
+              {/* Password */}
+              <IonItem className="rounded-lg border border-input">
+                <IonLabel position="stacked">Password</IonLabel>
+                <div className="relative w-full">
+                  <IonInput
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onIonChange={(e) => setPassword(e.detail.value!)}
+                    placeholder="Enter your password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-3 text-muted-foreground"
+                  >
+                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
+              </IonItem>
+
+              {/* Confirm Password */}
+              <IonItem className="rounded-lg border border-input">
+                <IonLabel position="stacked">Confirm Password</IonLabel>
+                <div className="relative w-full">
+                  <IonInput
+                    type={showConfirmPassword ? "text" : "password"}
+                    value={confirmPassword}
+                    onIonChange={(e) => setConfirmPassword(e.detail.value!)}
+                    placeholder="Confirm your password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-3 text-muted-foreground"
+                  >
+                    {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
+              </IonItem>
+
+              {/* Submit */}
+              <IonButton
+                expand="block"
+                type="submit"
+                className="bg-primary text-primary-foreground rounded-lg mt-4"
               >
-                {showConfirm ? <EyeOff size={20} /> : <Eye size={20} />}
-              </button>
+                Sign Up
+              </IonButton>
+            </form>
+
+            {/* Footer */}
+            <div className="mt-6 text-center">
+              <p className="text-sm text-muted-foreground">
+                Already have an account?{" "}
+                <Link to="/login" className="text-primary font-semibold">
+                  Sign In
+                </Link>
+              </p>
             </div>
+
           </div>
-
-          <button
-            type="submit"
-            className="w-full bg-primary text-primary-foreground font-semibold py-3 rounded-lg hover:opacity-90 transition-opacity mt-6"
-          >
-            Create Account
-          </button>
-        </form>
-
-        {/* Footer */}
-        <div className="mt-6 text-center">
-          <p className="text-sm text-muted-foreground">
-            Already have an account?{" "}
-            <Link
-              to="/login"
-              className="text-primary font-semibold hover:underline"
-            >
-              Sign In
-            </Link>
-          </p>
         </div>
-      </div>
-    </div>
+      </IonContent>
+    </IonPage>
   );
 }
-// ...existing code...
