@@ -1,18 +1,20 @@
-
 import { useState } from "react";
 import { useHistory, Link } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
+import { useAuth } from "../hooks/useAuth";
 
 export function Signup() {
   const history = useHistory();
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
+  const { signup } = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSignup = (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!name || !email || !password || !confirmPassword) {
@@ -25,20 +27,24 @@ export function Signup() {
       return;
     }
 
-    history.push("/dashboard");
+    setIsLoading(true);
+    try {
+      await signup(name, email, password); // Save user to localStorage
+      history.push("/dashboard");
+    } catch (err) {
+      alert((err as Error).message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6 py-8">
-      <div className="w-full max-w-sm">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4">
+      <div className="w-full max-w-sm bg-card p-8 rounded-xl shadow-md">
         {/* Header */}
         <div className="mb-8 text-center">
-          <div className="flex items-center justify-center mb-4">
-            <div className="text-primary font-bold text-2xl">CASHFLW</div>
-          </div>
-          <h1 className="text-2xl font-bold text-foreground mb-2">
-            Get Started
-          </h1>
+          <div className="text-primary font-bold text-3xl mb-2">CASHFLW</div>
+          <h1 className="text-2xl font-bold text-foreground mb-1">Get Started</h1>
           <p className="text-muted-foreground text-sm">
             Create your account to start tracking finances
           </p>
@@ -47,7 +53,7 @@ export function Signup() {
         {/* Form */}
         <form onSubmit={handleSignup} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-foreground mb-2">
+            <label className="block text-sm font-medium text-foreground mb-1">
               Full Name
             </label>
             <input
@@ -55,25 +61,27 @@ export function Signup() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Enter your full name"
+              required
               className="w-full px-4 py-3 rounded-lg border border-input bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-foreground mb-2">
-              Email Address
+            <label className="block text-sm font-medium text-foreground mb-1">
+              Email
             </label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email"
+              required
               className="w-full px-4 py-3 rounded-lg border border-input bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-foreground mb-2">
+            <label className="block text-sm font-medium text-foreground mb-1">
               Password
             </label>
             <div className="relative">
@@ -82,6 +90,7 @@ export function Signup() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Create a password"
+                required
                 className="w-full px-4 py-3 rounded-lg border border-input bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               />
               <button
@@ -95,7 +104,7 @@ export function Signup() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-foreground mb-2">
+            <label className="block text-sm font-medium text-foreground mb-1">
               Confirm Password
             </label>
             <div className="relative">
@@ -104,6 +113,7 @@ export function Signup() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Confirm your password"
+                required
                 className="w-full px-4 py-3 rounded-lg border border-input bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               />
               <button
@@ -118,29 +128,21 @@ export function Signup() {
 
           <button
             type="submit"
-            className="w-full bg-primary text-primary-foreground font-semibold py-3 rounded-lg hover:opacity-90 transition-opacity mt-6"
+            disabled={isLoading}
+            className="w-full bg-primary text-primary-foreground font-semibold py-3 rounded-lg hover:opacity-90 transition-opacity mt-4"
           >
-            Create Account
+            {isLoading ? "Creating Account..." : "Create Account"}
           </button>
         </form>
 
         {/* Footer */}
-        <div className="mt-6 text-center">
-          <p className="text-sm text-muted-foreground">
-            Already have an account?{" "}
-            <Link
-              to="/login"
-              className="text-primary font-semibold hover:underline"
-            >
-              Sign In
-            </Link>
-          </p>
-        </div>
+        <p className="mt-6 text-center text-sm text-muted-foreground">
+          Already have an account?{" "}
+          <Link to="/login" className="text-primary font-semibold hover:underline">
+            Sign In
+          </Link>
+        </p>
       </div>
     </div>
   );
 }
-// ...existing code...
-
-
-

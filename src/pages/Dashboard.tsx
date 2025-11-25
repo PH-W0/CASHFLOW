@@ -6,6 +6,8 @@ import {
 } from "@ionic/react";
 import { useTransactions } from "../context/TransactionContext";
 import { TrendingUp, TrendingDown, DollarSign } from "lucide-react";
+import { Link } from "react-router-dom";
+import { DueDateTimer } from "../components/DueDate.Timer"; // <-- import
 
 export function Dashboard() {
   const { transactions, income, expenses, netIncome } = useTransactions();
@@ -28,8 +30,8 @@ export function Dashboard() {
   const recentTransactions = transactions.slice(0, 5);
 
   return (
-    <IonPage>
-      <IonContent className="bg-background px-4 pt-6 pb-10">
+    <IonContent fullscreen className="bg-background">
+      <div className="px-4 pt-6 pb-20">
 
         {/* Header */}
         <div className="mb-8">
@@ -91,6 +93,16 @@ export function Dashboard() {
           </div>
         </div>
 
+        {/* View Timers Button */}
+        <div className="mb-6">
+          <Link
+            to="/timers"
+            className="block px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 text-center cursor-pointer transition-colors"
+          >
+            View Timers
+          </Link>
+        </div>
+
         {/* Recent Transactions */}
         <div>
           <div className="flex items-center justify-between mb-4">
@@ -123,6 +135,8 @@ export function Dashboard() {
                   key={transaction.id}
                   lines="none"
                   className="rounded-xl bg-card border border-border hover:border-primary/30 transition-colors p-3"
+                  routerLink="/timers"
+ // <-- use this for navigation
                 >
                   <div className="flex items-center justify-between w-full">
                     {/* Left section */}
@@ -163,12 +177,16 @@ export function Dashboard() {
                       {formatCurrency(transaction.amount)}
                     </p>
                   </div>
+                   {/* Due Date Timer */}
+                      <div>
+                    {transaction.dueDate && <DueDateTimer transaction={transaction} />}
+                  </div>
                 </IonItem>
               ))}
             </IonList>
           )}
         </div>
-      </IonContent>
-    </IonPage>
+       </div>
+</IonContent>
   );
 }

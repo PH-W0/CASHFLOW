@@ -28,6 +28,7 @@ import { TooltipProvider } from './components/ui/tooltip';
 import { Toaster } from './components/ui/toaster';
 import { Toaster as Sonner } from './components/ui/sonner';
 import { Layout } from './components/Layout';
+import { AuthProvider } from './hooks/useAuth';
 
 /* Pages */
 import { Welcome } from './pages/Welcome';
@@ -35,8 +36,9 @@ import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
 import { Dashboard } from './pages/Dashboard';
 import { AddTransaction } from './pages/AddTransaction';
-import NotFound from "./pages/NotFound";
-
+import NotFound from './pages/NotFound';
+import TimersScreen from './pages/TimersScreen';
+import TransactionDetail from './pages/TransactionDetail';
 
 setupIonicReact();
 
@@ -52,50 +54,34 @@ const App: React.FC = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <TransactionProvider>
-        <IonApp>
-          <IonReactRouter>
-            <IonRouterOutlet>
-              <Route exact path="/" render={() => <Redirect to="/welcome" />} />
+      <AuthProvider>
+        <TransactionProvider>
+          <IonApp>
+            <IonReactRouter>
+              <IonRouterOutlet>
 
-              <Route exact path="/welcome">
-                <PageWrapper>
-                  <Welcome />
-                </PageWrapper>
-              </Route>
-              <Route exact path="/login">
-                <PageWrapper>
-                  <Login />
-                </PageWrapper>
-              </Route>
-              <Route exact path="/signup">
-                <PageWrapper>
-                  <Signup />
-                </PageWrapper>
-              </Route>
-              <Route exact path="/dashboard">
-                <PageWrapper>
-                  <Dashboard />
-                </PageWrapper>
-              </Route>
-              <Route exact path="/add-transaction">
-                <PageWrapper>
-                  <AddTransaction />
-                </PageWrapper>
-              </Route>
-              
-              
+                {/* Redirect root */}
+                <Route exact path="/" render={() => <Redirect to="/welcome" />} />
 
-              {/* Catch-all route */}
-              <Route path="*">
-                <PageWrapper>
-                  <NotFound />
-                </PageWrapper>
-              </Route>
-            </IonRouterOutlet>
-          </IonReactRouter>
-        </IonApp>
-      </TransactionProvider>
+                {/* Public pages */}
+                <Route exact path="/welcome" render={() => <PageWrapper><Welcome /></PageWrapper>} />
+                <Route exact path="/login" render={() => <PageWrapper><Login /></PageWrapper>} />
+                <Route exact path="/signup" render={() => <PageWrapper><Signup /></PageWrapper>} />
+
+                {/* Dashboard & Transactions */}
+                <Route exact path="/dashboard" render={() => <PageWrapper><Dashboard /></PageWrapper>} />
+                <Route exact path="/add-transaction" render={() => <PageWrapper><AddTransaction /></PageWrapper>} />
+                <Route exact path="/timers" render={() => <PageWrapper><TimersScreen /></PageWrapper>} />
+                <Route exact path="/transaction/:id" render={() => <PageWrapper><TransactionDetail /></PageWrapper>} />
+
+                {/* Catch-all */}
+                <Route path="*" render={() => <PageWrapper><NotFound /></PageWrapper>} />
+
+              </IonRouterOutlet>
+            </IonReactRouter>
+          </IonApp>
+        </TransactionProvider>
+      </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

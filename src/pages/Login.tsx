@@ -1,27 +1,25 @@
-// ...existing code...
+
 import { useState } from "react";
 import { useHistory, Link } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
+import { useAuth } from "../hooks/useAuth";
 
 export function Login() {
   const history = useHistory();
+  const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   
 
-  const handleLogin = (e: React.FormEvent) => {
-
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const validEmail = "user@example.com";
-    const validPassword = "password123";
-
-    if (email === validEmail && password === validPassword) {
-    history.push("/dashboard"); // correct credentials
-  } else {
-    alert("Invalid email or password"); // show error
-  }
-
+    try {
+      await login(email, password); // <- AuthProvider checks localStorage
+      history.push("/dashboard");   // navigation works
+    } catch (err) {
+      alert((err as Error).message);
+    }
   };
 
   return (
