@@ -41,13 +41,7 @@ import TimersScreen from './pages/TimersScreen';
 import TransactionDetail from './pages/TransactionDetail';
 
 setupIonicReact();
-
 const queryClient = new QueryClient();
-
-/* Wrapper to avoid repeating Layout on every page */
-const PageWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <Layout>{children}</Layout>
-);
 
 const App: React.FC = () => (
   <QueryClientProvider client={queryClient}>
@@ -63,19 +57,19 @@ const App: React.FC = () => (
                 {/* Redirect root */}
                 <Route exact path="/" render={() => <Redirect to="/welcome" />} />
 
-                {/* Public pages */}
-                <Route exact path="/welcome" render={() => <PageWrapper><Welcome /></PageWrapper>} />
-                <Route exact path="/login" render={() => <PageWrapper><Login /></PageWrapper>} />
-                <Route exact path="/signup" render={() => <PageWrapper><Signup /></PageWrapper>} />
+                {/* Welcome page (no Layout) */}
+                <Route exact path="/welcome" component={Welcome} />
 
-                {/* Dashboard & Transactions */}
-                <Route exact path="/dashboard" render={() => <PageWrapper><Dashboard /></PageWrapper>} />
-                <Route exact path="/add-transaction" render={() => <PageWrapper><AddTransaction /></PageWrapper>} />
-                <Route exact path="/timers" render={() => <PageWrapper><TimersScreen /></PageWrapper>} />
-                <Route exact path="/transaction/:id" render={() => <PageWrapper><TransactionDetail /></PageWrapper>} />
+                {/* Pages wrapped in Layout */}
+                <Route exact path="/login" render={() => <Layout><Login /></Layout>} />
+                <Route exact path="/signup" render={() => <Layout><Signup /></Layout>} />
+                <Route exact path="/dashboard" render={() => <Layout><Dashboard /></Layout>} />
+                <Route exact path="/add-transaction" render={() => <Layout><AddTransaction /></Layout>} />
+                <Route exact path="/timers" render={() => <Layout><TimersScreen /></Layout>} />
+                <Route exact path="/transaction/:id" render={() => <Layout><TransactionDetail /></Layout>} />
 
                 {/* Catch-all */}
-                <Route path="*" render={() => <PageWrapper><NotFound /></PageWrapper>} />
+                <Route path="*" render={() => <Layout><NotFound /></Layout>} />
 
               </IonRouterOutlet>
             </IonReactRouter>

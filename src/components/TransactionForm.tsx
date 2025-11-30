@@ -58,7 +58,6 @@ export function TransactionForm({
   return (
     <div className="bg-card border border-border/40 rounded-2xl p-6 shadow-sm">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="font-bold text-lg text-foreground">Add Transaction</h3>
         <button
           onClick={onCancel}
           className="text-muted-foreground hover:text-foreground"

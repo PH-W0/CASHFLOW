@@ -85,9 +85,11 @@ export function Welcome() {
 
               <Link
                 to="/login"
-                className="w-full border border-primary text-primary font-semibold py-3 rounded-lg hover:bg-primary/5 transition-colors"
+                className="w-full bg-primary text-primary-foreground font-semibold py-3 rounded-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
               >
                 Sign In
+                  <ArrowRight size={18} />
+
               </Link>
             </div>
 

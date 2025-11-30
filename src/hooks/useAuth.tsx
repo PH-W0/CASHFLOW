@@ -1,9 +1,18 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { auth, googleProvider, facebookProvider, githubProvider, appleProvider } from "../firebase/firebaseConfig";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  signOut,
+  onAuthStateChanged,
+  updateProfile,
+} from "firebase/auth";
 
 interface User {
   id: string;
-  username: string;
-  email: string;
+  username: string | null;
+  email: string | null;
 }
 
 interface AuthContextType {
@@ -11,7 +20,11 @@ interface AuthContextType {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   signup: (username: string, email: string, password: string) => Promise<void>;
-  logout: () => void;
+  loginWithGoogle: () => Promise<void>;
+  loginWithFacebook: () => Promise<void>;
+  loginWithGitHub: () => Promise<void>;
+  loginWithApple: () => Promise<void>;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -21,45 +34,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Initialize demo account if no users exist
-    const users = localStorage.getItem("cashflow_users");
-    if (!users) {
-      const demoUsers = [
-        {
-          id: "1",
-          username: "Demo User",
-          email: "demo@cashflow.com",
-          password: "demo123",
-        },
-      ];
-      localStorage.setItem("cashflow_users", JSON.stringify(demoUsers));
-    }
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        setUser({
+          id: firebaseUser.uid,
+          username: firebaseUser.displayName,
+          email: firebaseUser.email,
+        });
+      } else {
+        setUser(null);
+      }
+      setIsLoading(false);
+    });
 
-    const stored = localStorage.getItem("cashflow_user");
-    if (stored) {
-      setUser(JSON.parse(stored));
-    }
-    setIsLoading(false);
+    return () => unsubscribe();
   }, []);
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      const users = JSON.parse(localStorage.getItem("cashflow_users") || "[]");
-      const foundUser = users.find((u: any) => u.email === email && u.password === password);
-
-      if (!foundUser) {
-        throw new Error("Invalid email or password");
-      }
-
-      const userData = {
-        id: foundUser.id,
-        username: foundUser.username,
-        email: foundUser.email,
-      };
-
-      setUser(userData);
-      localStorage.setItem("cashflow_user", JSON.stringify(userData));
+      const credential = await signInWithEmailAndPassword(auth, email, password);
+      const firebaseUser = credential.user;
+      setUser({
+        id: firebaseUser.uid,
+        username: firebaseUser.displayName,
+        email: firebaseUser.email,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -68,42 +68,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signup = async (username: string, email: string, password: string) => {
     setIsLoading(true);
     try {
-      const users = JSON.parse(localStorage.getItem("cashflow_users") || "[]");
-
-      if (users.some((u: any) => u.email === email)) {
-        throw new Error("Email already exists");
-      }
-
-      const newUser = {
-        id: Date.now().toString(),
+      const credential = await createUserWithEmailAndPassword(auth, email, password);
+      const firebaseUser = credential.user;
+      if (firebaseUser) await updateProfile(firebaseUser, { displayName: username });
+      setUser({
+        id: firebaseUser.uid,
         username,
-        email,
-        password,
-      };
-
-      users.push(newUser);
-      localStorage.setItem("cashflow_users", JSON.stringify(users));
-
-      const userData = {
-        id: newUser.id,
-        username: newUser.username,
-        email: newUser.email,
-      };
-
-      setUser(userData);
-      localStorage.setItem("cashflow_user", JSON.stringify(userData));
+        email: firebaseUser.email,
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem("cashflow_user");
+  const loginWithPopup = async (provider: any) => {
+    setIsLoading(true);
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const firebaseUser = result.user;
+      setUser({
+        id: firebaseUser.uid,
+        username: firebaseUser.displayName,
+        email: firebaseUser.email,
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, signup, logout }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        isLoading,
+        login,
+        signup,
+        logout: async () => { await signOut(auth); setUser(null); },
+        loginWithGoogle: () => loginWithPopup(googleProvider),
+        loginWithFacebook: () => loginWithPopup(facebookProvider),
+        loginWithGitHub: () => loginWithPopup(githubProvider),
+        loginWithApple: () => loginWithPopup(appleProvider),
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -111,8 +117,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within AuthProvider");
-  }
+  if (!context) throw new Error("useAuth must be used within AuthProvider");
   return context;
 }

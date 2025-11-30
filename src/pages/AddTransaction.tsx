@@ -15,11 +15,12 @@ export function AddTransaction() {
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
-  const [dueDate, setDueDate] = useState<string>(""); // <-- new due date state
+  const [dueDate, setDueDate] = useState<string>("");
+  const [loading, setLoading] = useState(false);
 
   const categories = type === "income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!amount || !category) {
@@ -27,27 +28,37 @@ export function AddTransaction() {
       return;
     }
 
-    addTransaction({
-      type,
-      amount: parseFloat(amount),
-      category,
-      description,
-      date: new Date().toISOString(),
-      dueDate: dueDate ? new Date(dueDate).toISOString() : undefined, // optional
-    });
+    setLoading(true);
 
-    setAmount("");
-    setCategory("");
-    setDescription("");
-    setDueDate("");
+    try {
+      await addTransaction({
+        type,
+        amount: parseFloat(amount),
+        category,
+        description,
+        date: new Date().toISOString(),
+        dueDate: dueDate ? new Date(dueDate).toISOString() : undefined,
+      });
 
-    history.push("/dashboard");
+      // Reset form
+      setAmount("");
+      setCategory("");
+      setDescription("");
+      setDueDate("");
+
+      history.push("/dashboard"); // Redirect after success
+    } catch (error) {
+      console.error("Error adding transaction:", error);
+      alert("Failed to add transaction. Try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <IonPage>
-     <IonContent fullscreen className="bg-background">
-  <div className="px-4 pt-6 pb-20">
+      <IonContent fullscreen className="bg-background">
+        <div className="px-4 pt-6 pb-20">
           <div className="mb-8">
             <h1 className="text-2xl font-bold text-foreground">Add Transaction</h1>
             <p className="text-muted-foreground text-sm">Record a new income or expense</p>
@@ -56,12 +67,14 @@ export function AddTransaction() {
           {/* Type Selector */}
           <div className="grid grid-cols-2 gap-3 mb-8">
             <button
+              type="button"
               onClick={() => { setType("income"); setCategory(""); }}
               className={`flex items-center justify-center gap-2 py-4 rounded-xl font-semibold transition-all ${type === "income" ? "bg-success text-white" : "bg-muted text-muted-foreground"}`}
             >
               <Plus size={20} /> Income
             </button>
             <button
+              type="button"
               onClick={() => { setType("expense"); setCategory(""); }}
               className={`flex items-center justify-center gap-2 py-4 rounded-xl font-semibold transition-all ${type === "expense" ? "bg-error text-white" : "bg-muted text-muted-foreground"}`}
             >
@@ -137,9 +150,10 @@ export function AddTransaction() {
               </button>
               <button
                 type="submit"
+                disabled={loading}
                 className={`flex-1 px-4 py-3 rounded-lg text-white font-semibold transition-opacity ${type === "income" ? "bg-success hover:opacity-90" : "bg-error hover:opacity-90"}`}
               >
-                Add {type === "income" ? "Income" : "Expense"}
+                {loading ? "Saving..." : `Add ${type === "income" ? "Income" : "Expense"}`}
               </button>
             </div>
           </form>

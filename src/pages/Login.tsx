@@ -1,22 +1,38 @@
-
 import { useState } from "react";
 import { useHistory, Link } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
+import { FcGoogle } from "react-icons/fc";
+import { FaFacebookF, FaGithub, FaApple } from "react-icons/fa";
 
 export function Login() {
+  const {
+    login,
+    loginWithGoogle,
+    loginWithFacebook,
+    loginWithGitHub,
+    loginWithApple,
+  } = useAuth();
   const history = useHistory();
-  const { login } = useAuth();
+
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await login(email, password); // <- AuthProvider checks localStorage
-      history.push("/dashboard");   // navigation works
+      await login(email, password);
+      history.push("/dashboard");
+    } catch (err) {
+      alert((err as Error).message);
+    }
+  };
+
+  const handleSocialLogin = async (loginFn: () => Promise<void>) => {
+    try {
+      await loginFn();
+      history.push("/dashboard");
     } catch (err) {
       alert((err as Error).message);
     }
@@ -40,6 +56,7 @@ export function Login() {
 
         {/* Form */}
         <form onSubmit={handleLogin} className="space-y-4">
+          {/* Email */}
           <div>
             <label className="block text-sm font-medium text-foreground mb-2">
               Email Address
@@ -53,6 +70,7 @@ export function Login() {
             />
           </div>
 
+          {/* Password */}
           <div>
             <label className="block text-sm font-medium text-foreground mb-2">
               Password
@@ -75,12 +93,59 @@ export function Login() {
             </div>
           </div>
 
+          {/* Email/Password Sign In */}
           <button
             type="submit"
-            className="w-full bg-primary text-primary-foreground font-semibold py-3 rounded-lg hover:opacity-90 transition-opacity mt-6"
+            className="w-full bg-primary text-primary-foreground font-semibold py-3 rounded-lg hover:opacity-90 transition-opacity mt-4"
           >
             Sign In
           </button>
+
+          {/* Divider */}
+          <div className="flex items-center my-4">
+            <hr className="flex-grow border-t border-gray-300" />
+            <span className="mx-2 text-sm text-muted-foreground">or</span>
+            <hr className="flex-grow border-t border-gray-300" />
+          </div>
+
+          {/* Social Buttons */}
+          <div className="space-y-2">
+            <button
+              type="button"
+              onClick={() => handleSocialLogin(loginWithGoogle)}
+              className="w-full flex items-center justify-center gap-2 bg-white text-gray-800 font-semibold py-3 rounded-lg border hover:opacity-90 transition-opacity"
+            >
+              <FcGoogle size={20} />
+              Sign in with Google
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleSocialLogin(loginWithFacebook)}
+              className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white font-semibold py-3 rounded-lg hover:opacity-90 transition-opacity"
+            >
+              <FaFacebookF size={20} />
+              Sign in with Facebook
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleSocialLogin(loginWithGitHub)}
+              className="w-full flex items-center justify-center gap-2 bg-gray-800 text-white font-semibold py-3 rounded-lg hover:opacity-90 transition-opacity"
+            >
+              <FaGithub size={20} />
+              Sign in with GitHub
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleSocialLogin(loginWithApple)}
+              className="w-full flex items-center justify-center gap-2 bg-black text-white font-semibold py-3 rounded-lg hover:opacity-90 transition-opacity"
+            >
+              <FaApple size={20} />
+              Sign in with Apple
+            </button>
+          </div>
         </form>
 
         {/* Footer */}
@@ -99,4 +164,3 @@ export function Login() {
     </div>
   );
 }
-

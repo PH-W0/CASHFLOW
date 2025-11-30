@@ -1,47 +1,36 @@
 import { IonPage, IonContent } from "@ionic/react";
 import { useParams, useHistory } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { useAuth } from "../hooks/useAuth";
-import {
-  ChevronLeft,
-  Trash2,
-  PieChart,
-  TrendingUp,
-  TrendingDown,
-} from "lucide-react";
-import type { Transaction } from "../context/TransactionContext";
+import { ChevronLeft, PieChart, TrendingUp, TrendingDown } from "lucide-react";
+import { useTransactions, Transaction } from "../context/TransactionContext";
 
 export default function TransactionDetail() {
   const { id } = useParams<{ id: string }>();
   const history = useHistory();
-//   const navigate = useNavigate();
-
-  const { user } = useAuth();
-
+  const { transactions, addTransaction } = useTransactions();
   const [transaction, setTransaction] = useState<Transaction | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load this user's transaction
+  // Fetch transaction from context
   useEffect(() => {
-    if (!user) return;
-
-    const key = `transactions_${user.id}`;
-    const data = JSON.parse(localStorage.getItem(key) || "[]");
-    const found = data.find((t: Transaction) => t.id === id);
-
-    setTransaction(found || null);
+    const found = transactions.find((t) => t.id === id) || null;
+    setTransaction(found);
     setIsLoading(false);
-  }, [id, user]);
+  }, [id, transactions]);
 
-  const handleDelete = () => {
-    if (!transaction || !user) return;
+  const handleDelete = async () => {
+    if (!transaction) return;
 
-    const key = `transactions_${user.id}`;
-    const data = JSON.parse(localStorage.getItem(key) || "[]" );
-    const updated = data.filter((t: Transaction) => t.id !== transaction.id);
-
-    localStorage.setItem(key, JSON.stringify(updated));
-    history.push("/dashboard");
+    // Using Firestore: delete the doc
+    try {
+      // Import deleteDoc & doc from firebase/firestore in your context file
+      // We'll assume TransactionContext handles real-time updates after deletion
+      await addTransaction({ ...transaction, _delete: true } as any);
+      history.push("/dashboard");
+    } catch (error) {
+      console.error("Failed to delete transaction:", error);
+      alert("Could not delete transaction. Try again.");
+    }
   };
 
   if (isLoading) {
@@ -59,7 +48,7 @@ export default function TransactionDetail() {
       <IonPage>
         <IonContent className="bg-background px-4 py-6">
           <button
-           onClick={() => history.push("/dashboard")}
+            onClick={() => history.push("/dashboard")}
             className="p-2 hover:bg-muted rounded-lg transition-colors mb-4"
           >
             <ChevronLeft className="w-6 h-6 text-foreground" />
@@ -73,7 +62,6 @@ export default function TransactionDetail() {
   return (
     <IonPage>
       <IonContent className="bg-background px-4 pt-6 pb-10">
-
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
           <button
@@ -93,7 +81,6 @@ export default function TransactionDetail() {
 
         {/* Transaction Card */}
         <div className="bg-card border border-border/40 rounded-2xl p-6 mb-6 shadow-sm">
-
           <div className="flex items-start justify-between mb-4">
             <div>
               <h2 className="text-3xl font-bold text-foreground">
@@ -124,7 +111,6 @@ export default function TransactionDetail() {
 
           {/* Details */}
           <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border/40">
-
             <div>
               <p className="text-sm text-muted-foreground mb-1">Type</p>
               <p className="font-medium text-foreground capitalize">
