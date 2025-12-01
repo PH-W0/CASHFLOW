@@ -10,8 +10,8 @@ import {
 } from "firebase/auth";
 
 interface User {
-  id: string;
-  username: string | null;
+  uid: string;              // Firebase UID
+  username: string | null;  // displayName
   email: string | null;
 }
 
@@ -37,7 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       if (firebaseUser) {
         setUser({
-          id: firebaseUser.uid,
+          uid: firebaseUser.uid,
           username: firebaseUser.displayName,
           email: firebaseUser.email,
         });
@@ -56,7 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const credential = await signInWithEmailAndPassword(auth, email, password);
       const firebaseUser = credential.user;
       setUser({
-        id: firebaseUser.uid,
+        uid: firebaseUser.uid,
         username: firebaseUser.displayName,
         email: firebaseUser.email,
       });
@@ -70,9 +70,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const credential = await createUserWithEmailAndPassword(auth, email, password);
       const firebaseUser = credential.user;
-      if (firebaseUser) await updateProfile(firebaseUser, { displayName: username });
+
+      if (firebaseUser) {
+        await updateProfile(firebaseUser, { displayName: username });
+      }
+
       setUser({
-        id: firebaseUser.uid,
+        uid: firebaseUser.uid,
         username,
         email: firebaseUser.email,
       });
@@ -86,14 +90,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const result = await signInWithPopup(auth, provider);
       const firebaseUser = result.user;
+
       setUser({
-        id: firebaseUser.uid,
+        uid: firebaseUser.uid,
         username: firebaseUser.displayName,
         email: firebaseUser.email,
       });
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const logout = async () => {
+    await signOut(auth);
+    setUser(null);
   };
 
   return (
@@ -103,7 +113,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isLoading,
         login,
         signup,
-        logout: async () => { await signOut(auth); setUser(null); },
+        logout,
         loginWithGoogle: () => loginWithPopup(googleProvider),
         loginWithFacebook: () => loginWithPopup(facebookProvider),
         loginWithGitHub: () => loginWithPopup(githubProvider),

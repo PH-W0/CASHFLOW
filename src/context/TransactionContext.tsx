@@ -4,12 +4,20 @@ import { db } from "../firebase/firebaseConfig";
 import {
   collection,
   addDoc,
+  deleteDoc,
+  doc,
   query,
   where,
   onSnapshot,
   Timestamp,
   orderBy,
 } from "firebase/firestore";
+
+export interface User{
+  uid: string;
+  username: string | null;
+  email: string | null
+}
 
 export interface Transaction {
   id: string;
@@ -24,14 +32,13 @@ export interface Transaction {
 interface TransactionContextType {
   transactions: Transaction[];
   addTransaction: (transaction: Omit<Transaction, "id">) => Promise<void>;
+  removeTransaction: (id: string) => Promise<void>;
   income: number;
   expenses: number;
   netIncome: number;
 }
 
-const TransactionContext = createContext<TransactionContextType | undefined>(
-  undefined
-);
+const TransactionContext = createContext<TransactionContextType | undefined>(undefined);
 
 export function TransactionProvider({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
@@ -44,16 +51,16 @@ export function TransactionProvider({ children }: { children: React.ReactNode })
     }
 
     const q = query(
-      collection(db, "transactions"),
-      where("userId", "==", user.id),
+      collection(db, "transaction"),
+      where("userId", "==", user.uid),
       orderBy("createdAt", "desc")
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const data: Transaction[] = snapshot.docs.map((doc) => ({
         id: doc.id,
-        ...doc.data(),
-      })) as Transaction[];
+        ...(doc.data() as Omit<Transaction, "id">),
+      }));
       setTransactions(data);
     });
 
@@ -64,9 +71,9 @@ export function TransactionProvider({ children }: { children: React.ReactNode })
     if (!user) return;
 
     try {
-      await addDoc(collection(db, "transactions"), {
+      await addDoc(collection(db, "transaction"), {
         ...transaction,
-        userId: user.id,
+        userId: user.uid,
         createdAt: Timestamp.now(),
       });
     } catch (error) {
@@ -74,19 +81,22 @@ export function TransactionProvider({ children }: { children: React.ReactNode })
     }
   };
 
-  const income = transactions
-    .filter((t) => t.type === "income")
-    .reduce((sum, t) => sum + t.amount, 0);
+  const removeTransaction = async (id: string) => {
+    if (!user) return;
+    try {
+      await deleteDoc(doc(db, "transaction", id));
+    } catch (error) {
+      console.error("Error removing transaction:", error);
+    }
+  };
 
-  const expenses = transactions
-    .filter((t) => t.type === "expense")
-    .reduce((sum, t) => sum + t.amount, 0);
-
+  const income = transactions.filter(t => t.type === "income").reduce((sum, t) => sum + t.amount, 0);
+  const expenses = transactions.filter(t => t.type === "expense").reduce((sum, t) => sum + t.amount, 0);
   const netIncome = income - expenses;
 
   return (
     <TransactionContext.Provider
-      value={{ transactions, addTransaction, income, expenses, netIncome }}
+      value={{ transactions, addTransaction, removeTransaction, income, expenses, netIncome }}
     >
       {children}
     </TransactionContext.Provider>
@@ -95,7 +105,6 @@ export function TransactionProvider({ children }: { children: React.ReactNode })
 
 export function useTransactions() {
   const context = useContext(TransactionContext);
-  if (!context)
-    throw new Error("useTransactions must be used within TransactionProvider");
+  if (!context) throw new Error("useTransactions must be used within TransactionProvider");
   return context;
 }

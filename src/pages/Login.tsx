@@ -9,9 +9,6 @@ export function Login() {
   const {
     login,
     loginWithGoogle,
-    loginWithFacebook,
-    loginWithGitHub,
-    loginWithApple,
   } = useAuth();
   const history = useHistory();
 
@@ -117,33 +114,6 @@ export function Login() {
             >
               <FcGoogle size={20} />
               Sign in with Google
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleSocialLogin(loginWithFacebook)}
-              className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white font-semibold py-3 rounded-lg hover:opacity-90 transition-opacity"
-            >
-              <FaFacebookF size={20} />
-              Sign in with Facebook
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleSocialLogin(loginWithGitHub)}
-              className="w-full flex items-center justify-center gap-2 bg-gray-800 text-white font-semibold py-3 rounded-lg hover:opacity-90 transition-opacity"
-            >
-              <FaGithub size={20} />
-              Sign in with GitHub
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleSocialLogin(loginWithApple)}
-              className="w-full flex items-center justify-center gap-2 bg-black text-white font-semibold py-3 rounded-lg hover:opacity-90 transition-opacity"
-            >
-              <FaApple size={20} />
-              Sign in with Apple
             </button>
           </div>
         </form>

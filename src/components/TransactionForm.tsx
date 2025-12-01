@@ -1,181 +1,134 @@
-import { useState } from "react";
-import { X } from "lucide-react";
-import type { Transaction } from "../context/TransactionContext";
+import { useState, useEffect } from "react";
+import { Transaction } from "../context/TransactionContext";
+import { Plus, Minus } from "lucide-react";
+
+const INCOME_CATEGORIES = ["Salary", "Freelance", "Investment", "Bonus", "Gift", "Other"];
+const EXPENSE_CATEGORIES = ["Food", "Transportation", "Entertainment", "Utilities", "Shopping", "Healthcare", "Other"];
 
 interface TransactionFormProps {
-  onAddTransaction: (transaction: Omit<Transaction, "id">) => void;
-  onCancel: () => void;
+  onSubmit: (transaction: Omit<Transaction, "id">) => void;
+  initialData?: Omit<Transaction, "id">;
 }
 
-const INCOME_CATEGORIES = [
-  "Salary",
-  "Freelance",
-  "Investment",
-  "Bonus",
-  "Other",
-];
-const EXPENSE_CATEGORIES = [
-  "Rent",
-  "Utilities",
-  "Food",
-  "Transportation",
-  "Entertainment",
-  "Healthcare",
-  "Other",
-];
-
-export function TransactionForm({
-  onAddTransaction,
-  onCancel,
-}: TransactionFormProps) {
-  const [type, setType] = useState<"income" | "expense">("expense");
-  const [amount, setAmount] = useState("");
-  const [category, setCategory] = useState("");
-  const [description, setDescription] = useState("");
-  const [dueDate, setDueDate] = useState("");
+export function TransactionForm({ onSubmit, initialData }: TransactionFormProps) {
+  const [type, setType] = useState<"income" | "expense">(initialData?.type || "income");
+  const [amount, setAmount] = useState<number>(initialData?.amount || 0);
+  const [category, setCategory] = useState<string>(initialData?.category || "");
+  const [description, setDescription] = useState<string>(initialData?.description || "");
+  const [date, setDate] = useState<string>(initialData?.date || new Date().toISOString().split("T")[0]);
 
   const categories = type === "income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
 
+  // Reset category if it doesn't exist in the new type
+  useEffect(() => {
+    if (!categories.includes(category)) {
+      setCategory("");
+    }
+  }, [type]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!amount || !category || !description) return;
 
-    onAddTransaction({
+    if (!category || amount <= 0 || !date) {
+      alert("Please fill all required fields correctly");
+      return;
+    }
+
+    onSubmit({
       type,
-      amount: parseFloat(amount),
+      amount,
       category,
       description,
-      date: new Date().toISOString().split("T")[0],
-      dueDate: dueDate || undefined,
+      date,
     });
 
-    setAmount("");
+    // Reset form
+    setType("income");
+    setAmount(0);
     setCategory("");
     setDescription("");
-    setDueDate("");
+    setDate(new Date().toISOString().split("T")[0]);
+  };
+
+  // Format number as South African Rand
+  const formatRands = (value: number) => {
+    return value.toLocaleString("en-ZA", { style: "currency", currency: "ZAR" });
   };
 
   return (
-    <div className="bg-card border border-border/40 rounded-2xl p-6 shadow-sm">
-      <div className="flex items-center justify-between mb-6">
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Type Selector */}
+      <div className="grid grid-cols-2 gap-3 mb-4">
         <button
-          onClick={onCancel}
-          className="text-muted-foreground hover:text-foreground"
+          type="button"
+          onClick={() => setType("income")}
+          className={`flex items-center justify-center gap-2 py-3 rounded-xl font-semibold transition-all ${
+            type === "income" ? "bg-success text-white" : "bg-muted text-muted-foreground"
+          }`}
         >
-          <X className="w-5 h-5" />
+          <Plus size={20} /> Income
+        </button>
+        <button
+          type="button"
+          onClick={() => setType("expense")}
+          className={`flex items-center justify-center gap-2 py-3 rounded-xl font-semibold transition-all ${
+            type === "expense" ? "bg-error text-white" : "bg-muted text-muted-foreground"
+          }`}
+        >
+          <Minus size={20} /> Expense
         </button>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Type Selection */}
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={() => {
-              setType("income");
-              setCategory("");
-            }}
-            className={`flex-1 py-2 rounded-lg font-medium transition-colors ${
-              type === "income"
-                ? "bg-success text-success-foreground"
-                : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-            }`}
-          >
-            Income
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setType("expense");
-              setCategory("");
-            }}
-            className={`flex-1 py-2 rounded-lg font-medium transition-colors ${
-              type === "expense"
-                ? "bg-destructive text-destructive-foreground"
-                : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-            }`}
-          >
-            Expense
-          </button>
-        </div>
+      {/* Amount */}
+      <input
+        type="number"
+        value={amount}
+        onChange={(e) => setAmount(parseFloat(e.target.value))}
+        placeholder="0.00"
+        className="w-full px-4 py-3 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+      />
+      {amount > 0 && <div className="text-sm text-muted-foreground">You entered: {formatRands(amount)}</div>}
 
-        {/* Amount Input */}
-        <div>
-          <label className="block text-sm font-medium text-muted-foreground mb-2">
-            Amount
-          </label>
-          <div className="relative">
-            <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
-              $
-            </span>
-            <input
-              type="number"
-              step="0.01"
-              min="0"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="0.00"
-              className="w-full pl-8 pr-4 py-2 bg-secondary border border-border/50 rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-          </div>
-        </div>
+      {/* Category */}
+      <select
+        value={category}
+        onChange={(e) => setCategory(e.target.value)}
+        className="w-full px-4 py-3 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+      >
+        <option value="">Select a category</option>
+        {categories.map((cat) => (
+          <option key={cat} value={cat}>
+            {cat}
+          </option>
+        ))}
+      </select>
 
-        {/* Category Select */}
-        <div>
-          <label className="block text-sm font-medium text-muted-foreground mb-2">
-            Category
-          </label>
-          <select
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className="w-full px-4 py-2 bg-secondary border border-border/50 rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-          >
-            <option value="">Select category</option>
-            {categories.map((cat) => (
-              <option key={cat} value={cat}>
-                {cat}
-              </option>
-            ))}
-          </select>
-        </div>
+      {/* Description */}
+      <input
+        type="text"
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+        placeholder="Description (optional)"
+        className="w-full px-4 py-3 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+      />
 
-        {/* Description Input */}
-        <div>
-          <label className="block text-sm font-medium text-muted-foreground mb-2">
-            Description
-          </label>
-          <input
-            type="text"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="e.g., Monthly rent payment"
-            className="w-full px-4 py-2 bg-secondary border border-border/50 rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-          />
-        </div>
+      {/* Date */}
+      <input
+        type="date"
+        value={date}
+        onChange={(e) => setDate(e.target.value)}
+        className="w-full px-4 py-3 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+      />
 
-        {/* Due Date (optional, for expenses) */}
-        {type === "expense" && (
-          <div>
-            <label className="block text-sm font-medium text-muted-foreground mb-2">
-              Due Date (Optional)
-            </label>
-            <input
-              type="date"
-              value={dueDate}
-              onChange={(e) => setDueDate(e.target.value)}
-              className="w-full px-4 py-2 bg-secondary border border-border/50 rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-          </div>
-        )}
-
-        {/* Submit Button */}
-        <button
-          type="submit"
-          className="w-full py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium mt-6"
-        >
-          Add Transaction
-        </button>
-      </form>
-    </div>
+      {/* Submit */}
+      <button
+        type="submit"
+        className={`w-full py-3 rounded-lg font-semibold text-white transition-opacity ${
+          type === "income" ? "bg-success hover:opacity-90" : "bg-error hover:opacity-90"
+        }`}
+      >
+        Add {type === "income" ? "Income" : "Expense"}
+      </button>
+    </form>
   );
 }

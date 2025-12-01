@@ -8,7 +8,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
   // Define bottom nav items (Dashboard removed)
   const navItems = [
     { path: "/dashboard", icon: Home, label: "Home" },
-    { path: "/add-transaction", icon: Plus, label: "Add" },
     
   ];
 

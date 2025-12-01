@@ -11,6 +11,8 @@ import {
 import { GoogleAuthProvider } from "firebase/auth";
 import { FacebookAuthProvider, GithubAuthProvider, OAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import { connectFirestoreEmulator } from "firebase/firestore";
+import { connectAuthEmulator } from "firebase/auth";
 
 const firebaseConfig = {
 
@@ -39,4 +41,6 @@ export const googleProvider = new GoogleAuthProvider();
 export const facebookProvider = new FacebookAuthProvider();
 export const githubProvider = new GithubAuthProvider();
 export const appleProvider = new OAuthProvider("apple.com");
-export default app;
+
+
+export default {app, db, auth};

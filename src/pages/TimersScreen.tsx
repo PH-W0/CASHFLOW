@@ -1,36 +1,22 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { IonPage, IonContent } from "@ionic/react";
 import { Link } from "react-router-dom";
 import { PieChart, ChevronLeft, AlertCircle, Clock } from "lucide-react";
-
-import { DueDateTimer } from "../components/DueDate.Timer";
-import { useAuth } from "../hooks/useAuth";
-import type { Transaction } from "../context/TransactionContext"; 
+import { useTransactions } from "../context/TransactionContext";
+import DueDateTimer from "../components/DueDate.Timer";
 
 export default function TimersScreen() {
-  const { user } = useAuth();
+  const { transactions } = useTransactions();
 
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-
-  useEffect(() => {
-    if (!user) return;
-
-    const key = `transactions_${user.id}`;
-    const stored = JSON.parse(localStorage.getItem(key) || "[]");
-
-    setTransactions(stored);
-  }, [user]);
-
-  // Only transactions with due dates
+  // 🔥 Only transactions with due dates
   const dueTransactions = transactions.filter((t) => t.dueDate);
 
-  // Count overdue
-  const overdueCount = dueTransactions.filter((t) => {
-    const due = new Date(t.dueDate!);
-    return due < new Date();
-  }).length;
+  // 🔥 Count overdue
+  const overdueCount = dueTransactions.filter(
+    (t) => new Date(t.dueDate!) < new Date()
+  ).length;
 
-  // Count upcoming within 7 days
+  // 🔥 Count upcoming (within 7 days)
   const upcomingCount = dueTransactions.filter((t) => {
     const diff = new Date(t.dueDate!).getTime() - Date.now();
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
@@ -60,18 +46,26 @@ export default function TimersScreen() {
 
         {/* Summary Cards */}
         <div className="grid grid-cols-2 gap-4 mb-8">
+          {/* Overdue */}
           <div className="bg-destructive/10 border border-destructive/20 p-4 rounded-xl flex items-center justify-between">
             <div>
               <p className="text-destructive text-sm font-medium">Overdue</p>
-              <h2 className="text-2xl font-bold text-destructive">{overdueCount}</h2>
+              <h2 className="text-2xl font-bold text-destructive">
+                {overdueCount}
+              </h2>
             </div>
             <AlertCircle className="w-8 h-8 text-destructive" />
           </div>
 
+          {/* Upcoming */}
           <div className="bg-yellow-500/10 border border-yellow-500/20 p-4 rounded-xl flex items-center justify-between">
             <div>
-              <p className="text-yellow-500 text-sm font-medium">Upcoming (7 days)</p>
-              <h2 className="text-2xl font-bold text-yellow-500">{upcomingCount}</h2>
+              <p className="text-yellow-500 text-sm font-medium">
+                Upcoming (7 days)
+              </p>
+              <h2 className="text-2xl font-bold text-yellow-500">
+                {upcomingCount}
+              </h2>
             </div>
             <Clock className="w-8 h-8 text-yellow-500" />
           </div>
@@ -93,6 +87,7 @@ export default function TimersScreen() {
             ))
           )}
         </div>
+
       </IonContent>
     </IonPage>
   );

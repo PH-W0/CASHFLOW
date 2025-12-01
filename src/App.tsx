@@ -48,6 +48,8 @@ const App: React.FC = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+
+      {/* ✅ Wrap TransactionProvider inside AuthProvider so it can access the user */}
       <AuthProvider>
         <TransactionProvider>
           <IonApp>
@@ -76,6 +78,7 @@ const App: React.FC = () => (
           </IonApp>
         </TransactionProvider>
       </AuthProvider>
+
     </TooltipProvider>
   </QueryClientProvider>
 );
